@@ -1,0 +1,53 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  /* Brand */
+  --color-primary: #c84b2f;
+  --color-primary-light: #df6443;
+  --color-primary-soft: #fef2ee;
+  --color-primary-border: #f5c9be;
+
+  /* Surfaces */
+  --color-bg: #fdfcf9;
+  --color-surface: #ffffff;
+  --color-surface-raised: #faf8f5;
+
+  /* Text */
+  --color-text: #1c1917;
+  --color-text-secondary: #44403c;
+  --color-muted: #78716c;
+  --color-subtle: #a8a29e;
+
+  /* Structure */
+  --color-border: #e8e4e0;
+  --color-border-light: #f0ece8;
+
+  /* Radius */
+  --radius-sm: 8px;
+  --radius: 14px;
+  --radius-lg: 20px;
+
+  /* Shadows */
+  --shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.07);
+  --shadow-md: 0 8px 30px rgba(0, 0, 0, 0.10);
+  --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.14);
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.6;
+  min-height: 100vh;
+}
