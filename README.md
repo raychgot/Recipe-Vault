@@ -1,4 +1,4 @@
-Recipe Vault Overview
+##Recipe Vault Overview
 
 Recipe Vault is a recipe management web application where users can browse recipes, add their own recipes, search and filter by ingredient or category, and save favorite recipes. The goal of this project is to build a full recipe experience starting with local data storage and later expanding to authentication and cloud-based storage.
 
