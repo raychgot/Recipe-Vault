@@ -39,7 +39,7 @@ export default function Home() {
             Recipe Vault is a recipe management app designed to make cooking easier and more
             enjoyable. Browse a rich collection of recipes, add and store your own creations,
             search and filter by ingredient or category, and save your favorites for quick
-            access — all in one beautifully simple place.
+            access, all in one beautifully simple place.
           </p>
           <div className="hero-actions">
             <button className="btn btn-primary" onClick={() => navigate('/signup')}>
