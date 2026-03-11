@@ -24,14 +24,12 @@
 
 ### Completed Features
 
-1. Create recipes  
-2. View recipe list  
-3. Edit recipes  
-4. Delete recipes  
-5. Search recipes  
-6. Filter recipes by category  
-7. Favorite recipes
-8. User authentication with Supabase  
+1. Recipe CRUD system allowing users to create, edit, and delete recipes
+2. Recipe browsing page displaying a list of all recipes
+3. Individual recipe detail pages showing full ingredients and instructions
+4. Search functionality allowing users to search recipes by name
+5. Category filtering to filter recipes by recipe category
+6. Favorites system allowing users to save recipes and access them later
 
 ---
 

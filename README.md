@@ -8,14 +8,12 @@ Recipe Vault is a recipe management web application where users can browse recip
 
 ## Features
 
-- Create new recipes with ingredients, instructions, cook time, and category
-- View a list of saved recipes
-- Edit and delete existing recipes
-- Search recipes by title
-- Filter recipes by category
-- Save recipes to favorites
-- User authentication with login and signup
-- Cloud database storage using Supabase
+- Recipe CRUD system allowing users to create, edit, and delete recipes
+- Recipe browsing page displaying a list of all recipes
+- Individual recipe detail pages showing full ingredients and instructions
+- Search functionality allowing users to search recipes by name
+- Category filtering to filter recipes by recipe category
+- Favorites system allowing users to save recipes and access them later
 
 ---
 
