@@ -19,9 +19,9 @@ Recipe Vault is a recipe management web application where users can browse recip
 
 ## AI Features
 
--Generate description feature
--Generate tags feature
-These AI features are displayed when adding a recipe and can be viewed on recipe cards while editing and after saving. The AI features use Ollama running locally, so it won’t work unless Ollama is installed on your local device.
+- Generate description feature
+- Generate tags feature
+These AI features are displayed when adding a recipe and can be viewed on recipe cards while editing and after saving. The AI features use Ollama running locally, so these features won’t work unless Ollama is installed on your local device.
 
 ## Tech Stack
 
