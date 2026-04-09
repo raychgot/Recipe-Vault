@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Utensils, Search } from "lucide-react";
-import { getRecipes, deleteRecipe, getFavorites, toggleFavorite } from "../utils/recipeStorage";
+import { getRecipes, deleteRecipe, getFavorites, toggleFavorite, deleteDescription, deleteTags } from "../utils/recipeStorage";
 import { useAuth } from "../context/AuthContext";
 import RecipeCard from "./RecipeCard";
 import RecipeForm from "./RecipeForm";
@@ -63,6 +63,8 @@ export default function RecipeList() {
     if (!window.confirm("Delete this recipe? This cannot be undone.")) return;
     try {
       await deleteRecipe(id);
+      deleteDescription(id);
+      deleteTags(id);
       setRecipes((prev) => prev.filter((r) => r.id !== id));
     } catch (err) {
       setError(err.message);

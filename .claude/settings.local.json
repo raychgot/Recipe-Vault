@@ -5,7 +5,8 @@
       "Bash(npm install:*)",
       "Bash(sleep 3:*)",
       "Bash(curl:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Skill(claude-api)"
     ]
   }
 }

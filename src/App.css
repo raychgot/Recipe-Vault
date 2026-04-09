@@ -513,6 +513,90 @@
   color: var(--color-muted);
 }
 
+/* ── AI Description ── */
+.ai-description-section {
+  margin-bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ai-description-error {
+  margin-bottom: 0;
+}
+
+.ai-description-box {
+  background: linear-gradient(135deg, #fff8f5 0%, #fff3e8 100%);
+  border: 1px solid var(--color-primary-border);
+  border-radius: var(--radius-sm);
+  padding: 1rem 1.125rem;
+}
+
+.ai-description-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-primary);
+  margin-bottom: 0.5rem;
+}
+
+.ai-description-text {
+  font-size: 0.9375rem;
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* ── AI Tags (form preview) ── */
+.ai-tags-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.ai-tag {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary-border);
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+/* ── AI Tags (detail page) ── */
+.recipe-detail__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 2.25rem;
+}
+
+.recipe-detail__tag {
+  display: inline-block;
+  padding: 0.3rem 0.875rem;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary-border);
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.btn-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
 .form-error {
   background: #fef2f2;
   border: 1px solid #fecaca;
@@ -710,6 +794,13 @@
   color: var(--color-muted);
 }
 
+.recipe-card__description {
+  font-size: 0.875rem;
+  color: var(--color-muted);
+  line-height: 1.65;
+  margin: 0;
+}
+
 .recipe-card__btn {
   margin-top: 0.25rem;
 }
@@ -757,6 +848,13 @@
   letter-spacing: -0.035em;
   color: var(--color-text);
   line-height: 1.15;
+  margin-bottom: 1rem;
+}
+
+.recipe-detail__description {
+  font-size: 1.0625rem;
+  color: var(--color-muted);
+  line-height: 1.75;
   margin-bottom: 2.25rem;
 }
 

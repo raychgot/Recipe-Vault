@@ -126,6 +126,56 @@ function toggleFavorite(id) {
   localStorage.setItem(FAVORITES_KEY, JSON.stringify(updated));
 }
 
+// ── AI Tags (localStorage) ────────────────────────────────────
+
+const TAGS_KEY = "recipe_tags";
+
+function getAllTags() {
+  const data = localStorage.getItem(TAGS_KEY);
+  return data ? JSON.parse(data) : {};
+}
+
+function getTags(id) {
+  return getAllTags()[id] ?? [];
+}
+
+function saveTags(id, tags) {
+  const all = getAllTags();
+  all[id] = tags;
+  localStorage.setItem(TAGS_KEY, JSON.stringify(all));
+}
+
+function deleteTags(id) {
+  const all = getAllTags();
+  delete all[id];
+  localStorage.setItem(TAGS_KEY, JSON.stringify(all));
+}
+
+// ── AI Descriptions (localStorage) ────────────────────────────
+
+const DESCRIPTIONS_KEY = "recipe_descriptions";
+
+function getDescriptions() {
+  const data = localStorage.getItem(DESCRIPTIONS_KEY);
+  return data ? JSON.parse(data) : {};
+}
+
+function getDescription(id) {
+  return getDescriptions()[id] ?? "";
+}
+
+function saveDescription(id, description) {
+  const all = getDescriptions();
+  all[id] = description;
+  localStorage.setItem(DESCRIPTIONS_KEY, JSON.stringify(all));
+}
+
+function deleteDescription(id) {
+  const all = getDescriptions();
+  delete all[id];
+  localStorage.setItem(DESCRIPTIONS_KEY, JSON.stringify(all));
+}
+
 export {
   getRecipes,
   getRecipeById,
@@ -134,4 +184,10 @@ export {
   deleteRecipe,
   getFavorites,
   toggleFavorite,
+  getDescription,
+  saveDescription,
+  deleteDescription,
+  getTags,
+  saveTags,
+  deleteTags,
 };

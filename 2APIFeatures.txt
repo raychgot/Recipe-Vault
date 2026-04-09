@@ -1,0 +1,1076 @@
+╭─── Claude Code v2.1.86 ──────────────────────────────────────────────────────╮
+│                                                    │ Tips for getting        │
+│                Welcome back Rachel!                │ started                 │
+│                                                    │ Run /init to create a … │
+│                      ▗ ▗   ▖ ▖                     │ ─────────────────────── │
+│                                                    │ Recent activity         │
+│                        ▘▘ ▝▝                       │ No recent activity      │
+│       Sonnet 4.6 · Claude Pro ·                    │                         │
+│       rayraygottlieb@gmail.com's Organization      │                         │
+│               ~/Desktop/Recipe-Vault               │                         │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+  ✻ Voice mode is now available · /voice to enable
+
+❯ I want to add an AI-powered feature to my existing recipe tracker app called  
+Recipe Vault. Each recipe has a title, category, cook time, ingredients, and    
+instructions. On the Add Recipe page, add a button for each recipe called       
+"Generate Description". When clicked, it should send the recipe data to the     
+Ollama API running at http://localhost:11434 using the gemma4:e2b model, and    
+return a short 2 to 3 sentence description of the recipe. The description       
+should then be displayed under the recipe in the UI. Handle everything for me   
+and modify my existing files as needed.                                         
+
+⏺ Skill(claude-api)
+  ⎿  Successfully loaded skill · 4 tools allowed
+
+⏺ Let me read the current files before making any changes.
+
+  Read 2 files (ctrl+o to expand)
+
+⏺ Now let me find and read the RecipeForm component.
+
+  Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+⏺ Now I have everything I need. I'll add the "Generate Description" feature to
+  RecipeForm.jsx and the supporting styles to App.css.
+
+⏺ Update(src/components/RecipeForm.jsx)
+  ⎿  Added 52 lines, removed 3 lines
+      21    };
+      22  }
+      23  
+      24 +async function generateDescription(fields) {                   
+      25 +  const prompt =                                               
+      26 +    `Write a short 2 to 3 sentence description for the followin
+         +g recipe. ` +                                                  
+      27 +    `Be concise, appetizing, and informative. Do not include an
+         +y headers or labels — just the description.\n\n` +             
+      28 +    `Title: ${fields.title}\n` +                               
+      29 +    `Category: ${fields.category || "N/A"}\n` +                
+      30 +    `Cook Time: ${fields.cookTime ? fields.cookTime + " minutes
+         +" : "N/A"}\n` +                                                
+      31 +    `Ingredients: ${fields.ingredients || "N/A"}\n` +          
+      32 +    `Instructions: ${fields.instructions || "N/A"}`;           
+      33 +                                                               
+      34 +  const res = await fetch("http://localhost:11434/api/generate"
+         +, {                                                            
+      35 +    method: "POST",                                            
+      36 +    headers: { "Content-Type": "application/json" },           
+      37 +    body: JSON.stringify({ model: "gemma4:e2b", prompt, stream:
+         + false }),                                                     
+      38 +  });                                                          
+      39 +                                                               
+      40 +  if (!res.ok) {                                               
+      41 +    const text = await res.text();                             
+      42 +    throw new Error(text || `Ollama returned ${res.status}`);  
+      43 +  }                                                            
+      44 +                                                               
+      45 +  const data = await res.json();                               
+      46 +  return data.response?.trim() ?? "";                          
+      47 +}                                                              
+      48 +                                                               
+      49  export default function RecipeForm({ initialRecipe = null, onSa
+          ve = null }) {
+      50    const isEditing = initialRecipe !== null;
+      51  
+      52    const [fields, setFields] = useState(
+      53      isEditing ? recipeToFields(initialRecipe) : EMPTY_FORM
+      54    );
+      30 -  const [submitting, setSubmitting] = useState(false);         
+      31 -  const [error, setError]     = useState("");                  
+      32 -  const [success, setSuccess] = useState(false);               
+      55 +  const [submitting, setSubmitting]   = useState(false);       
+      56 +  const [error, setError]             = useState("");          
+      57 +  const [success, setSuccess]         = useState(false);       
+      58 +  const [description, setDescription] = useState("");          
+      59 +  const [generating, setGenerating]   = useState(false);       
+      60 +  const [genError, setGenError]       = useState("");          
+      61  
+      62    function handleChange(e) {
+      63      const { name, value } = e.target;
+     ...
+      66      if (success) setSuccess(false);
+      67    }
+      68  
+      69 +  async function handleGenerateDescription() {                 
+      70 +    if (!fields.title.trim()) {                                
+      71 +      setGenError("Please enter a recipe title before generatin
+         +g a description.");                                            
+      72 +      return;                                                  
+      73 +    }                                                          
+      74 +    setGenError("");                                           
+      75 +    setGenerating(true);                                       
+      76 +    try {                                                      
+      77 +      const result = await generateDescription(fields);        
+      78 +      setDescription(result);                                  
+      79 +    } catch (err) {                                            
+      80 +      setGenError(                                             
+      81 +        err.message.includes("Failed to fetch")                
+      82 +          ? "Could not reach Ollama. Make sure it is running at
+         + http://localhost:11434."                                      
+      83 +          : err.message || "Failed to generate description."   
+      84 +      );                                                       
+      85 +    } finally {                                                
+      86 +      setGenerating(false);                                    
+      87 +    }                                                          
+      88 +  }                                                            
+      89 +                                                               
+      90    async function handleSubmit(e) {
+      91      e.preventDefault();
+      92      setError("");
+
+⏺ Now add the button and description display to the JSX, right before the form
+  actions:
+
+⏺ Update(src/components/RecipeForm.jsx)
+  ⎿  Added 28 lines, removed 1 line
+      189          />
+      190        </div>
+      191  
+      192 +      <div className="ai-description-section">                
+      193 +        <button                                               
+      194 +          type="button"                                       
+      195 +          className="btn btn-secondary btn-full"              
+      196 +          disabled={generating || submitting}                 
+      197 +          onClick={handleGenerateDescription}                 
+      198 +        >                                                     
+      199 +          {generating ? (                                     
+      200 +            <>                                                
+      201 +              <span className="btn-spinner" />                
+      202 +              Generating…                                     
+      203 +            </>                                               
+      204 +          ) : (                                               
+      205 +            "✨ Generate Description"                         
+      206 +          )}                                                  
+      207 +        </button>                                             
+      208 +                                                              
+      209 +        {genError && <div className="form-error ai-description
+          +-error">{genError}</div>}                                     
+      210 +                                                              
+      211 +        {description && !genError && (                        
+      212 +          <div className="ai-description-box">                
+      213 +            <p className="ai-description-label">AI-Generated D
+          +escription</p>                                                
+      214 +            <p className="ai-description-text">{description}</
+          +p>                                                            
+      215 +          </div>                                              
+      216 +        )}                                                    
+      217 +      </div>                                                  
+      218 +                                                              
+      219        <div className="form-actions">
+      220          <button
+      221            type="button"
+     ...
+      223            disabled={submitting}
+      224            onClick={() => {
+      225              if (isEditing && onSave) { onSave(null); }
+      199 -            else { setFields(EMPTY_FORM); setError(""); setSuc
+          -cess(false); }                                                
+      226 +            else { setFields(EMPTY_FORM); setError(""); setSuc
+          +cess(false); setDescription(""); setGenError(""); }           
+      227            }}
+      228          >
+      229            {isEditing ? "Cancel" : "Clear"}
+
+⏺ Now add the styles to App.css:
+
+⏺ Update(src/App.css)
+  ⎿  Added 46 lines
+      513    color: var(--color-muted);
+      514  }
+      515  
+      516 +/* ── AI Description ── */                                    
+      517 +.ai-description-section {                                     
+      518 +  margin-bottom: 1.25rem;                                     
+      519 +  display: flex;                                              
+      520 +  flex-direction: column;                                     
+      521 +  gap: 0.75rem;                                               
+      522 +}                                                             
+      523 +                                                              
+      524 +.ai-description-error {                                       
+      525 +  margin-bottom: 0;                                           
+      526 +}                                                             
+      527 +                                                              
+      528 +.ai-description-box {                                         
+      529 +  background: linear-gradient(135deg, #fff8f5 0%, #fff3e8 100%
+          +);                                                            
+      530 +  border: 1px solid var(--color-primary-border);              
+      531 +  border-radius: var(--radius-sm);                            
+      532 +  padding: 1rem 1.125rem;                                     
+      533 +}                                                             
+      534 +                                                              
+      535 +.ai-description-label {                                       
+      536 +  font-size: 0.75rem;                                         
+      537 +  font-weight: 700;                                           
+      538 +  text-transform: uppercase;                                  
+      539 +  letter-spacing: 0.06em;                                     
+      540 +  color: var(--color-primary);                                
+      541 +  margin-bottom: 0.5rem;                                      
+      542 +}                                                             
+      543 +                                                              
+      544 +.ai-description-text {                                        
+      545 +  font-size: 0.9375rem;                                       
+      546 +  color: var(--color-text-secondary);                         
+      547 +  line-height: 1.7;                                           
+      548 +  margin: 0;                                                  
+      549 +}                                                             
+      550 +                                                              
+      551 +.btn-spinner {                                                
+      552 +  display: inline-block;                                      
+      553 +  width: 14px;                                                
+      554 +  height: 14px;                                               
+      555 +  border: 2px solid currentColor;                             
+      556 +  border-top-color: transparent;                              
+      557 +  border-radius: 50%;                                         
+      558 +  animation: spin 0.7s linear infinite;                       
+      559 +  flex-shrink: 0;                                             
+      560 +}                                                             
+      561 +                                                              
+      562  .form-error {
+      563    background: #fef2f2;
+      564    border: 1px solid #fecaca;
+
+⏺ Let me verify the final state of RecipeForm looks correct:
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Everything looks good. Here's what was changed:
+
+  src/components/RecipeForm.jsx
+  - Added a generateDescription() async function that POSTs to
+  http://localhost:11434/api/generate with the gemma4:e2b model, sending a
+  prompt built from the recipe's title, category, cook time, ingredients, and
+  instructions
+  - Added description, generating, and genError state
+  - Added a "✨ Generate Description" button above the Save/Cancel actions — it
+  shows a spinner while loading and is disabled during generation or submission
+  - The generated description renders in a styled warm-toned box labeled
+  "AI-Generated Description"
+  - "Clear" button also resets the description and any generation error
+  - Friendly error message if Ollama isn't reachable
+
+  src/App.css
+  - Added .ai-description-section, .ai-description-box, .ai-description-label,
+  .ai-description-text, and .btn-spinner styles
+
+✻ Cogitated for 1m 5s
+
+❯ npm run dev                                                                   
+
+⏺ Bash(npm run dev)
+  ⎿  Running in the background (↓ to manage)
+
+⏺ Bash(sleep 3 && cat /private/tmp/claude-501/-Users-rachel-Desktop-Recipe-Vault
+      /9f531469-048c-477a-8ad6-7138b44cd5df/tasks/bzskkk0ql.output)
+  ⎿  > recipe-vault@0.0.0 dev
+     > vite
+     … +5 lines (ctrl+o to expand)
+
+⏺ Dev server is running at http://localhost:5173/. Head to the Add Recipe page
+  to try the "✨ Generate Description" button — make sure Ollama is running with
+   ollama serve before clicking it.
+
+❯ The description is generating correctly, but it is not being saved to the     
+recipe. Update the app so that when a description is generated, it is stored as 
+ part of that recipe’s data and persists in the UI instead of disappearing.     
+Make sure each recipe keeps its own generated description.                      
+
+  Searched for 2 patterns, read 1 file (ctrl+o to expand)
+
+⏺ Let me also read Recipes.jsx to see how recipes are displayed.
+
+  Searched for 2 patterns, read 3 files (ctrl+o to expand)
+
+⏺ The recipes are in Supabase and there's no description column, so I'll store
+  descriptions in localStorage keyed by recipe ID — no schema migration needed.
+  The changes span four files.
+⏺ Update(src/utils/recipeStorage.js)
+  ⎿  Added 28 lines
+      126    localStorage.setItem(FAVORITES_KEY, JSON.stringify(updated))
+           ;
+      127  }
+      128  
+      129 +// ── AI Descriptions (localStorage) ─────────────────────────
+          +───                                                           
+      130 +                                                              
+      131 +const DESCRIPTIONS_KEY = "recipe_descriptions";               
+      132 +                                                              
+      133 +function getDescriptions() {                                  
+      134 +  const data = localStorage.getItem(DESCRIPTIONS_KEY);        
+      135 +  return data ? JSON.parse(data) : {};                        
+      136 +}                                                             
+      137 +                                                              
+      138 +function getDescription(id) {                                 
+      139 +  return getDescriptions()[id] ?? "";                         
+      140 +}                                                             
+      141 +                                                              
+      142 +function saveDescription(id, description) {                   
+      143 +  const all = getDescriptions();                              
+      144 +  all[id] = description;                                      
+      145 +  localStorage.setItem(DESCRIPTIONS_KEY, JSON.stringify(all));
+      146 +}                                                             
+      147 +                                                              
+      148 +function deleteDescription(id) {                              
+      149 +  const all = getDescriptions();                              
+      150 +  delete all[id];                                             
+      151 +  localStorage.setItem(DESCRIPTIONS_KEY, JSON.stringify(all));
+      152 +}                                                             
+      153 +                                                              
+      154  export {
+      155    getRecipes,
+      156    getRecipeById,
+     ...
+      159    deleteRecipe,
+      160    getFavorites,
+      161    toggleFavorite,
+      162 +  getDescription,                                             
+      163 +  saveDescription,                                            
+      164 +  deleteDescription,                                          
+      165  };
+
+⏺ Now update RecipeForm.jsx to import saveDescription and persist it after
+  saving:
+
+⏺ Update(src/components/RecipeForm.jsx)
+  ⎿  Added 1 line, removed 1 line
+      1  import { useState } from "react";
+      2 -import { saveRecipe, updateRecipe } from "../utils/recipeStorage
+        -";                                                              
+      2 +import { saveRecipe, updateRecipe, saveDescription, getDescripti
+        +on } from "../utils/recipeStorage";                             
+      3  
+      4  const CATEGORIES = ["Breakfast", "Lunch", "Dinner", "Snack", "De
+         ssert", "Drink"];
+      5  
+
+⏺ Pre-populate the description when editing a recipe that already has one, and
+  initialize the state accordingly:
+
+⏺ Update(src/components/RecipeForm.jsx)
+  ⎿  Added 3 lines, removed 1 line
+      55    const [submitting, setSubmitting]   = useState(false);
+      56    const [error, setError]             = useState("");
+      57    const [success, setSuccess]         = useState(false);
+      58 -  const [description, setDescription] = useState("");          
+      58 +  const [description, setDescription] = useState(              
+      59 +    isEditing ? getDescription(initialRecipe.id) : ""          
+      60 +  );                                                           
+      61    const [generating, setGenerating]   = useState(false);
+      62    const [genError, setGenError]       = useState("");
+      63  
+
+⏺ Now update handleSubmit to persist the description after a successful save:
+
+⏺ Update(src/components/RecipeForm.jsx)
+  ⎿  Added 4 lines, removed 1 line
+      105      try {
+      106        if (isEditing) {
+      107          const updated = await updateRecipe({ id: initialRecipe
+           .id, ...parsed });
+      108 +        if (description) saveDescription(updated.id, descripti
+          +on);                                                          
+      109          if (onSave) onSave(updated);
+      110        } else {
+      110 -        await saveRecipe(parsed);                             
+      111 +        const saved = await saveRecipe(parsed);               
+      112 +        if (description) saveDescription(saved.id, description
+          +);                                                            
+      113          setFields(EMPTY_FORM);
+      114 +        setDescription("");                                   
+      115          setSuccess(true);
+      116        }
+      117      } catch (err) {
+
+⏺ Now update RecipeCard.jsx to read and display the description:
+
+⏺ Update(src/components/RecipeCard.jsx)
+  ⎿  Added 7 lines
+      1  import { Link } from "react-router-dom";
+      2  import { Clock, Utensils, Pencil, Trash2, Heart } from "lucide-r
+         eact";
+      3 +import { getDescription } from "../utils/recipeStorage";        
+      4  
+      5  export default function RecipeCard({
+      6    recipe,
+     ...
+       9    onEdit,
+      10    onDelete,
+      11  }) {
+      12 +  const description = getDescription(recipe.id);               
+      13 +                                                               
+      14    return (
+      15      <div className="recipe-card">
+      16        <div className="recipe-card__header">
+     ...
+      46  
+      47        <h3 className="recipe-card__title">{recipe.title}</h3>
+      48  
+      49 +      {description && (                                        
+      50 +        <p className="recipe-card__description">{description}</
+         +p>                                                             
+      51 +      )}                                                       
+      52 +                                                               
+      53        <div className="recipe-card__meta">
+      54          <span className="recipe-card__meta-item">
+      55            <Clock size={14} strokeWidth={2} />
+
+⏺ Now update RecipeList.jsx to also clean up the description when a recipe is
+  deleted:
+
+⏺ Update(src/components/RecipeList.jsx)
+  ⎿  Added 1 line, removed 1 line
+      1  import { useState, useEffect } from "react";
+      2  import { Link } from "react-router-dom";
+      3  import { Utensils, Search } from "lucide-react";
+      4 -import { getRecipes, deleteRecipe, getFavorites, toggleFavorite 
+        -} from "../utils/recipeStorage";                                
+      4 +import { getRecipes, deleteRecipe, getFavorites, toggleFavorite,
+        + deleteDescription } from "../utils/recipeStorage";             
+      5  import { useAuth } from "../context/AuthContext";
+      6  import RecipeCard from "./RecipeCard";
+      7  import RecipeForm from "./RecipeForm";
+
+⏺ Update(src/components/RecipeList.jsx)
+  ⎿  Added 1 line
+      63      if (!window.confirm("Delete this recipe? This cannot be und
+          one.")) return;
+      64      try {
+      65        await deleteRecipe(id);
+      66 +      deleteDescription(id);                                   
+      67        setRecipes((prev) => prev.filter((r) => r.id !== id));
+      68      } catch (err) {
+      69        setError(err.message);
+
+⏺ Finally, add the card description style to App.css:
+
+⏺ Update(src/App.css)
+  ⎿  Added 7 lines
+      756    color: var(--color-muted);
+      757  }
+      758  
+      759 +.recipe-card__description {                                   
+      760 +  font-size: 0.875rem;                                        
+      761 +  color: var(--color-muted);                                  
+      762 +  line-height: 1.65;                                          
+      763 +  margin: 0;                                                  
+      764 +}                                                             
+      765 +                                                              
+      766  .recipe-card__btn {
+      767    margin-top: 0.25rem;
+      768  }
+
+⏺ Here's a summary of all the changes:
+
+  src/utils/recipeStorage.js — Added getDescription, saveDescription, and
+  deleteDescription helpers that store descriptions in localStorage under the
+  key recipe_descriptions, as a { [recipeId]: description } map.
+
+  src/components/RecipeForm.jsx
+  - Imports saveDescription and getDescription
+  - When editing, pre-populates the description state from localStorage so the
+  previously generated description is shown immediately
+  - After a successful save (both new and edit), calls saveDescription(id, 
+  description) with the returned recipe ID
+
+  src/components/RecipeCard.jsx — Calls getDescription(recipe.id) and renders
+  the description as a paragraph below the title when one exists.
+
+  src/components/RecipeList.jsx — Calls deleteDescription(id) alongside
+  deleteRecipe(id) so deleted recipes don't leave orphaned entries in
+  localStorage.
+
+✻ Baked for 1m 32s
+
+❯ The description only displays on the preview of the recipes on the Recipes    
+page, but when I click View Recipe the description is not there. I would like   
+the description generated to only display in the recipe when you click View     
+Recipe. Please remove it from the preview and only have them save on the View   
+Recipe page.                                                                    
+
+  Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+⏺ Two quick changes — remove the description from RecipeCard and add it to
+  RecipeDetail.
+
+⏺ Update(src/components/RecipeCard.jsx)
+  ⎿  Removed 3 lines
+      1  import { Link } from "react-router-dom";
+      2  import { Clock, Utensils, Pencil, Trash2, Heart } from "lucide-r
+         eact";
+      3 -import { getDescription } from "../utils/recipeStorage";        
+      3  
+      4  export default function RecipeCard({
+      5    recipe,
+     ...
+       8    onEdit,
+       9    onDelete,
+      10  }) {
+      12 -  const description = getDescription(recipe.id);               
+      13 -                                                               
+      11    return (
+      12      <div className="recipe-card">
+      13        <div className="recipe-card__header">
+
+⏺ Update(src/components/RecipeCard.jsx)
+  ⎿  Removed 4 lines
+      43  
+      44        <h3 className="recipe-card__title">{recipe.title}</h3>
+      45  
+      46 -      {description && (                                        
+      47 -        <p className="recipe-card__description">{description}</
+         -p>                                                             
+      48 -      )}                                                       
+      49 -                                                               
+      46        <div className="recipe-card__meta">
+      47          <span className="recipe-card__meta-item">
+      48            <Clock size={14} strokeWidth={2} />
+
+⏺ Now add the description to RecipeDetail.jsx, right below the title:
+
+⏺ Update(src/pages/RecipeDetail.jsx)
+  ⎿  Added 1 line, removed 1 line
+      1  import { useState, useEffect } from "react";
+      2  import { useParams, Link, useNavigate } from "react-router-dom";
+      3  import { Clock, Tag, ChevronLeft, Utensils } from "lucide-react"
+         ;
+      4 -import { getRecipeById } from "../utils/recipeStorage";         
+      4 +import { getRecipeById, getDescription } from "../utils/recipeSt
+        +orage";                                                         
+      5  import { useAuth } from "../context/AuthContext";
+      6  
+      7  export default function RecipeDetail() {
+
+⏺ Update(src/pages/RecipeDetail.jsx)
+  ⎿  Added 4 lines
+      68  
+      69          <h1 className="recipe-detail__title">{recipe.title}</h1
+          >
+      70  
+      71 +        {getDescription(recipe.id) && (                        
+      72 +          <p className="recipe-detail__description">{getDescrip
+         +tion(recipe.id)}</p>                                           
+      73 +        )}                                                     
+      74 +                                                               
+      75          <div className="recipe-detail__body">
+      76            <section className="recipe-detail__section">
+      77              <h2 className="recipe-detail__section-title">
+
+⏺ And add the style for it in App.css:
+
+⏺ Update(src/App.css)
+  ⎿  Error editing file
+⏺ Update(src/App.css)
+  ⎿  Added 7 lines
+      810    letter-spacing: -0.035em;
+      811    color: var(--color-text);
+      812    line-height: 1.15;
+      813 +  margin-bottom: 1rem;                                        
+      814 +}                                                             
+      815 +                                                              
+      816 +.recipe-detail__description {                                 
+      817 +  font-size: 1.0625rem;                                       
+      818 +  color: var(--color-muted);                                  
+      819 +  line-height: 1.75;                                          
+      820    margin-bottom: 2.25rem;
+      821  }
+      822  
+
+⏺ Done. Here's what changed:
+
+  - RecipeCard.jsx — removed the description import and display entirely
+  - RecipeDetail.jsx — imports getDescription and renders the description
+  between the title and the ingredients/instructions sections, only when one
+  exists
+  - App.css — added .recipe-detail__description style and slightly reduced the
+  title's bottom margin so the description sits naturally beneath it
+
+✻ Baked for 34s
+
+❯ The descripion is still not there when I click View Recipe. I only see it     
+when I go to edit a recipe. I want the descriptions to also be displayed on the 
+ View Recipe pages. Don't display on the preview of the recipes on Recipes      
+page, keep the preview the same. Only display the generated descriptions on the 
+ View Recipe page of the recipes.                                               
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ The code in RecipeDetail.jsx looks correct on paper, but the issue is that
+  getDescription is called inline in JSX without React being aware of when it
+  has a value. Since the recipe loads asynchronously, I need to read the
+  description into state after the recipe is available so it triggers a proper
+  render.
+
+⏺ Update(src/pages/RecipeDetail.jsx)
+  ⎿  Added 2 lines
+      10    const { loading: authLoading } = useAuth();
+      11    const [recipe, setRecipe] = useState(null);
+      12    const [loading, setLoading] = useState(true);
+      13 +  const [description, setDescription] = useState("");          
+      14  
+      15    useEffect(() => {
+      16      if (authLoading) return;
+     ...
+      19        const data = await getRecipeById(id);
+      20        if (!cancelled) {
+      21          setRecipe(data);
+      22 +        if (data) setDescription(getDescription(data.id));     
+      23          setLoading(false);
+      24        }
+      25      }
+
+⏺ Update(src/pages/RecipeDetail.jsx)
+  ⎿  Added 2 lines, removed 2 lines
+      70  
+      71          <h1 className="recipe-detail__title">{recipe.title}</h1
+          >
+      72  
+      73 -        {getDescription(recipe.id) && (                        
+      74 -          <p className="recipe-detail__description">{getDescrip
+         -tion(recipe.id)}</p>                                           
+      73 +        {description && (                                      
+      74 +          <p className="recipe-detail__description">{descriptio
+         +n}</p>                                                         
+      75          )}
+      76  
+      77          <div className="recipe-detail__body">
+
+⏺ Now remove the inline getDescription import since it's no longer called
+  directly in JSX — it's used inside the effect instead, so the import is still
+  needed. Let me verify the final file looks clean:
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Good. The previous approach called getDescription directly inside JSX during
+  the initial render — before the async recipe load finished, so recipe.id
+  wasn't available yet. Now description is loaded into state inside the same
+  useEffect as the recipe, so both are set together and React re-renders with
+  the correct value. The description will now show on the View Recipe page for
+  any recipe that has one saved.
+
+✻ Brewed for 1m 34s
+
+❯ Now add a second AI feature to the app. For each recipe, add a "Generate      
+Tags" button. When clicked, it should send the recipe data to the Ollama API    
+and return 3 to 5 descriptive tags. These tags should be different from the     
+existing category options and describe things like dietary type (vegetarian,    
+vegan, gluten-free, keto, dairy-free), effort level (beginner-friendly,         
+intermediate, advanced), or nutrition/style (high protein, low sugar, low carb, 
+ high fiber). The response should only return the tags, and they should be      
+saved to the recipe and displayed under it and on the View Recipes pages just   
+like the generate descriptions API. This should be a separate API call from the 
+ description feature.                                                           
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Now I have everything I need. I'll touch all the same files as the description
+   feature, following the exact same pattern.
+
+  1. Storage utilities
+
+⏺ Update(src/utils/recipeStorage.js)
+  ⎿  Added 25 lines
+      126    localStorage.setItem(FAVORITES_KEY, JSON.stringify(updated))
+           ;
+      127  }
+      128  
+      129 +// ── AI Tags (localStorage) ─────────────────────────────────
+          +───                                                           
+      130 +                                                              
+      131 +const TAGS_KEY = "recipe_tags";                               
+      132 +                                                              
+      133 +function getAllTags() {                                       
+      134 +  const data = localStorage.getItem(TAGS_KEY);                
+      135 +  return data ? JSON.parse(data) : {};                        
+      136 +}                                                             
+      137 +                                                              
+      138 +function getTags(id) {                                        
+      139 +  return getAllTags()[id] ?? [];                              
+      140 +}                                                             
+      141 +                                                              
+      142 +function saveTags(id, tags) {                                 
+      143 +  const all = getAllTags();                                   
+      144 +  all[id] = tags;                                             
+      145 +  localStorage.setItem(TAGS_KEY, JSON.stringify(all));        
+      146 +}                                                             
+      147 +                                                              
+      148 +function deleteTags(id) {                                     
+      149 +  const all = getAllTags();                                   
+      150 +  delete all[id];                                             
+      151 +  localStorage.setItem(TAGS_KEY, JSON.stringify(all));        
+      152 +}                                                             
+      153 +                                                              
+      154  // ── AI Descriptions (localStorage) ─────────────────────────
+           ───
+      155  
+      156  const DESCRIPTIONS_KEY = "recipe_descriptions";
+
+⏺ Update(src/utils/recipeStorage.js)
+  ⎿  Added 3 lines
+      187    getDescription,
+      188    saveDescription,
+      189    deleteDescription,
+      190 +  getTags,                                                    
+      191 +  saveTags,                                                   
+      192 +  deleteTags,                                                 
+      193  };
+
+⏺ 2. RecipeForm — generate function, state, button, display, persist on save
+
+⏺ Update(src/components/RecipeForm.jsx)
+  ⎿  Added 1 line, removed 1 line
+      1  import { useState } from "react";
+      2 -import { saveRecipe, updateRecipe, saveDescription, getDescripti
+        -on } from "../utils/recipeStorage";                             
+      2 +import { saveRecipe, updateRecipe, saveDescription, getDescripti
+        +on, saveTags, getTags } from "../utils/recipeStorage";          
+      3  
+      4  const CATEGORIES = ["Breakfast", "Lunch", "Dinner", "Snack", "De
+         ssert", "Drink"];
+      5  
+
+⏺ Update(src/components/RecipeForm.jsx)
+  ⎿  Added 34 lines
+      21    };
+      22  }
+      23  
+      24 +async function generateTags(fields) {                          
+      25 +  const prompt =                                               
+      26 +    `Generate 3 to 5 short descriptive tags for the following r
+         +ecipe. ` +                                                     
+      27 +    `Tags should describe dietary type (e.g. vegetarian, vegan,
+         + gluten-free, keto, dairy-free), ` +                           
+      28 +    `effort level (e.g. beginner-friendly, intermediate, advanc
+         +ed), ` +                                                       
+      29 +    `or nutrition/style (e.g. high-protein, low-sugar, low-carb
+         +, high-fiber). ` +                                             
+      30 +    `Do not use the recipe category as a tag. ` +              
+      31 +    `Return only the tags as a comma-separated list with no ext
+         +ra text, punctuation, or explanation.\n\n` +                   
+      32 +    `Title: ${fields.title}\n` +                               
+      33 +    `Category: ${fields.category || "N/A"}\n` +                
+      34 +    `Cook Time: ${fields.cookTime ? fields.cookTime + " minutes
+         +" : "N/A"}\n` +                                                
+      35 +    `Ingredients: ${fields.ingredients || "N/A"}\n` +          
+      36 +    `Instructions: ${fields.instructions || "N/A"}`;           
+      37 +                                                               
+      38 +  const res = await fetch("http://localhost:11434/api/generate"
+         +, {                                                            
+      39 +    method: "POST",                                            
+      40 +    headers: { "Content-Type": "application/json" },           
+      41 +    body: JSON.stringify({ model: "gemma4:e2b", prompt, stream:
+         + false }),                                                     
+      42 +  });                                                          
+      43 +                                                               
+      44 +  if (!res.ok) {                                               
+      45 +    const text = await res.text();                             
+      46 +    throw new Error(text || `Ollama returned ${res.status}`);  
+      47 +  }                                                            
+      48 +                                                               
+      49 +  const data = await res.json();                               
+      50 +  const raw = data.response?.trim() ?? "";                     
+      51 +  return raw                                                   
+      52 +    .split(",")                                                
+      53 +    .map((t) => t.trim().toLowerCase().replace(/^[#\-\s]+|[.!?]
+         ++$/g, ""))                                                     
+      54 +    .filter(Boolean)                                           
+      55 +    .slice(0, 5);                                              
+      56 +}                                                              
+      57 +                                                               
+      58  async function generateDescription(fields) {
+      59    const prompt =
+      60      `Write a short 2 to 3 sentence description for the followin
+          g recipe. ` +
+
+⏺ Now add the tags state and handler inside the component:
+
+⏺ Update(src/components/RecipeForm.jsx)
+  ⎿  Added 5 lines
+       94    );
+       95    const [generating, setGenerating]   = useState(false);
+       96    const [genError, setGenError]       = useState("");
+       97 +  const [tags, setTags]               = useState(             
+       98 +    isEditing ? getTags(initialRecipe.id) : []                
+       99 +  );                                                          
+      100 +  const [generatingTags, setGeneratingTags] = useState(false);
+      101 +  const [tagsError, setTagsError]           = useState("");   
+      102  
+      103    function handleChange(e) {
+      104      const { name, value } = e.target;
+
+⏺ Update(src/components/RecipeForm.jsx)
+  ⎿  Added 21 lines
+      128      }
+      129    }
+      130  
+      131 +  async function handleGenerateTags() {                       
+      132 +    if (!fields.title.trim()) {                               
+      133 +      setTagsError("Please enter a recipe title before generat
+          +ing tags.");                                                  
+      134 +      return;                                                 
+      135 +    }                                                         
+      136 +    setTagsError("");                                         
+      137 +    setGeneratingTags(true);                                  
+      138 +    try {                                                     
+      139 +      const result = await generateTags(fields);              
+      140 +      setTags(result);                                        
+      141 +    } catch (err) {                                           
+      142 +      setTagsError(                                           
+      143 +        err.message.includes("Failed to fetch")               
+      144 +          ? "Could not reach Ollama. Make sure it is running a
+          +t http://localhost:11434."                                    
+      145 +          : err.message || "Failed to generate tags."         
+      146 +      );                                                      
+      147 +    } finally {                                               
+      148 +      setGeneratingTags(false);                               
+      149 +    }                                                         
+      150 +  }                                                           
+      151 +                                                              
+      152    async function handleSubmit(e) {
+      153      e.preventDefault();
+      154      setError("");
+
+⏺ Persist tags on save alongside descriptions:
+
+⏺ Update(src/components/RecipeForm.jsx)
+  ⎿  Added 3 lines
+      166        if (isEditing) {
+      167          const updated = await updateRecipe({ id: initialRecipe
+           .id, ...parsed });
+      168          if (description) saveDescription(updated.id, descripti
+           on);
+      169 +        if (tags.length) saveTags(updated.id, tags);          
+      170          if (onSave) onSave(updated);
+      171        } else {
+      172          const saved = await saveRecipe(parsed);
+      173          if (description) saveDescription(saved.id, description
+           );
+      174 +        if (tags.length) saveTags(saved.id, tags);            
+      175          setFields(EMPTY_FORM);
+      176          setDescription("");
+      177 +        setTags([]);                                          
+      178          setSuccess(true);
+      179        }
+      180      } catch (err) {
+
+⏺ Add the "Generate Tags" button and tag display in JSX, right after the
+  description section:
+⏺ Update(src/components/RecipeForm.jsx)
+  ⎿  Added 31 lines
+      284          )}
+      285        </div>
+      286  
+      287 +      <div className="ai-description-section">                
+      288 +        <button                                               
+      289 +          type="button"                                       
+      290 +          className="btn btn-secondary btn-full"              
+      291 +          disabled={generatingTags || submitting}             
+      292 +          onClick={handleGenerateTags}                        
+      293 +        >                                                     
+      294 +          {generatingTags ? (                                 
+      295 +            <>                                                
+      296 +              <span className="btn-spinner" />                
+      297 +              Generating…                                     
+      298 +            </>                                               
+      299 +          ) : (                                               
+      300 +            "🏷️ Generate Tags"                                
+      301 +          )}                                                  
+      302 +        </button>                                             
+      303 +                                                              
+      304 +        {tagsError && <div className="form-error ai-descriptio
+          +n-error">{tagsError}</div>}                                   
+      305 +                                                              
+      306 +        {tags.length > 0 && !tagsError && (                   
+      307 +          <div className="ai-description-box">                
+      308 +            <p className="ai-description-label">AI-Generated T
+          +ags</p>                                                       
+      309 +            <div className="ai-tags-list">                    
+      310 +              {tags.map((tag) => (                            
+      311 +                <span key={tag} className="ai-tag">{tag}</span
+          +>                                                             
+      312 +              ))}                                             
+      313 +            </div>                                            
+      314 +          </div>                                              
+      315 +        )}                                                    
+      316 +      </div>                                                  
+      317 +                                                              
+      318        <div className="form-actions">
+      319          <button
+      320            type="button"
+
+⏺ Also clear tags when "Clear" is clicked:
+
+⏺ Update(src/components/RecipeForm.jsx)
+  ⎿  Added 1 line, removed 1 line
+      322            disabled={submitting}
+      323            onClick={() => {
+      324              if (isEditing && onSave) { onSave(null); }
+      325 -            else { setFields(EMPTY_FORM); setError(""); setSuc
+          -cess(false); setDescription(""); setGenError(""); }           
+      325 +            else { setFields(EMPTY_FORM); setError(""); setSuc
+          +cess(false); setDescription(""); setGenError(""); setTags([]);
+          + setTagsError(""); }                                          
+      326            }}
+      327          >
+      328            {isEditing ? "Cancel" : "Clear"}
+
+⏺ 3. RecipeDetail — load and display tags
+
+⏺ Update(src/pages/RecipeDetail.jsx)
+  ⎿  Added 1 line, removed 1 line
+      1  import { useState, useEffect } from "react";
+      2  import { useParams, Link, useNavigate } from "react-router-dom";
+      3  import { Clock, Tag, ChevronLeft, Utensils } from "lucide-react"
+         ;
+      4 -import { getRecipeById, getDescription } from "../utils/recipeSt
+        -orage";                                                         
+      4 +import { getRecipeById, getDescription, getTags } from "../utils
+        +/recipeStorage";                                                
+      5  import { useAuth } from "../context/AuthContext";
+      6  
+      7  export default function RecipeDetail() {
+
+⏺ Update(src/pages/RecipeDetail.jsx)
+  ⎿  Added 1 line
+      11    const [recipe, setRecipe] = useState(null);
+      12    const [loading, setLoading] = useState(true);
+      13    const [description, setDescription] = useState("");
+      14 +  const [tags, setTags] = useState([]);                        
+      15  
+      16    useEffect(() => {
+      17      if (authLoading) return;
+
+⏺ Update(src/pages/RecipeDetail.jsx)
+  ⎿  Added 4 lines, removed 1 line
+      20        const data = await getRecipeById(id);
+      21        if (!cancelled) {
+      22          setRecipe(data);
+      23 -        if (data) setDescription(getDescription(data.id));     
+      23 +        if (data) {                                            
+      24 +          setDescription(getDescription(data.id));             
+      25 +          setTags(getTags(data.id));                           
+      26 +        }                                                      
+      27          setLoading(false);
+      28        }
+      29      }
+
+⏺ Update(src/pages/RecipeDetail.jsx)
+  ⎿  Added 8 lines
+      78            <p className="recipe-detail__description">{descriptio
+          n}</p>
+      79          )}
+      80  
+      81 +        {tags.length > 0 && (                                  
+      82 +          <div className="recipe-detail__tags">                
+      83 +            {tags.map((tag) => (                               
+      84 +              <span key={tag} className="recipe-detail__tag">{t
+         +ag}</span>                                                     
+      85 +            ))}                                                
+      86 +          </div>                                               
+      87 +        )}                                                     
+      88 +                                                               
+      89          <div className="recipe-detail__body">
+      90            <section className="recipe-detail__section">
+      91              <h2 className="recipe-detail__section-title">
+
+⏺ 4. RecipeList — clean up tags on delete
+
+⏺ Update(src/components/RecipeList.jsx)
+  ⎿  Added 1 line, removed 1 line
+      1  import { useState, useEffect } from "react";
+      2  import { Link } from "react-router-dom";
+      3  import { Utensils, Search } from "lucide-react";
+      4 -import { getRecipes, deleteRecipe, getFavorites, toggleFavorite,
+        - deleteDescription } from "../utils/recipeStorage";             
+      4 +import { getRecipes, deleteRecipe, getFavorites, toggleFavorite,
+        + deleteDescription, deleteTags } from "../utils/recipeStorage"; 
+      5  import { useAuth } from "../context/AuthContext";
+      6  import RecipeCard from "./RecipeCard";
+      7  import RecipeForm from "./RecipeForm";
+
+⏺ Update(src/components/RecipeList.jsx)
+  ⎿  Added 1 line
+      64      try {
+      65        await deleteRecipe(id);
+      66        deleteDescription(id);
+      67 +      deleteTags(id);                                          
+      68        setRecipes((prev) => prev.filter((r) => r.id !== id));
+      69      } catch (err) {
+      70        setError(err.message);
+
+⏺ 5. Styles
+
+⏺ Update(src/App.css)
+  ⎿  Added 38 lines
+      548    margin: 0;
+      549  }
+      550  
+      551 +/* ── AI Tags (form preview) ── */                            
+      552 +.ai-tags-list {                                               
+      553 +  display: flex;                                              
+      554 +  flex-wrap: wrap;                                            
+      555 +  gap: 0.5rem;                                                
+      556 +}                                                             
+      557 +                                                              
+      558 +.ai-tag {                                                     
+      559 +  display: inline-block;                                      
+      560 +  padding: 0.25rem 0.75rem;                                   
+      561 +  background: var(--color-primary-soft);                      
+      562 +  color: var(--color-primary);                                
+      563 +  border: 1px solid var(--color-primary-border);              
+      564 +  border-radius: 999px;                                       
+      565 +  font-size: 0.8125rem;                                       
+      566 +  font-weight: 600;                                           
+      567 +}                                                             
+      568 +                                                              
+      569 +/* ── AI Tags (detail page) ── */                             
+      570 +.recipe-detail__tags {                                        
+      571 +  display: flex;                                              
+      572 +  flex-wrap: wrap;                                            
+      573 +  gap: 0.5rem;                                                
+      574 +  margin-bottom: 2.25rem;                                     
+      575 +}                                                             
+      576 +                                                              
+      577 +.recipe-detail__tag {                                         
+      578 +  display: inline-block;                                      
+      579 +  padding: 0.3rem 0.875rem;                                   
+      580 +  background: var(--color-primary-soft);                      
+      581 +  color: var(--color-primary);                                
+      582 +  border: 1px solid var(--color-primary-border);              
+      583 +  border-radius: 999px;                                       
+      584 +  font-size: 0.8125rem;                                       
+      585 +  font-weight: 600;                                           
+      586 +  letter-spacing: 0.01em;                                     
+      587 +}                                                             
+      588 +                                                              
+      589  .btn-spinner {
+      590    display: inline-block;
+      591    width: 14px;
+
+⏺ Here's a summary of everything added:
+
+  recipeStorage.js — Added getTags, saveTags, deleteTags using a separate
+  recipe_tags localStorage key that stores { [recipeId]: string[] }.
+
+  RecipeForm.jsx
+  - generateTags() — separate Ollama call using a prompt focused on dietary
+  type, effort, and nutrition/style; parses the comma-separated response into a
+  clean array of 3–5 tags
+  - tags / generatingTags / tagsError state (pre-populated from localStorage
+  when editing)
+  - "🏷️ Generate Tags" button with its own spinner and error state, independent
+  of the description button
+  - Tag chips preview shown in the form after generation
+  - Tags persisted to localStorage on save, cleared on Clear
+
+  RecipeDetail.jsx — Loads tags from localStorage in the same useEffect as the
+  description, renders them as chips between the description and the
+  ingredients/instructions sections.
+
+  RecipeList.jsx — Calls deleteTags(id) alongside deleteDescription(id) when a
+  recipe is deleted.
+
+  App.css — Added .ai-tags-list / .ai-tag for the form preview and
+  .recipe-detail__tags / .recipe-detail__tag for the detail page.
+
+✻ Crunched for 1m 36s

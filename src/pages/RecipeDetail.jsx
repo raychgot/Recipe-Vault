@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Clock, Tag, ChevronLeft, Utensils } from "lucide-react";
-import { getRecipeById } from "../utils/recipeStorage";
+import { getRecipeById, getDescription, getTags } from "../utils/recipeStorage";
 import { useAuth } from "../context/AuthContext";
 
 export default function RecipeDetail() {
@@ -10,6 +10,8 @@ export default function RecipeDetail() {
   const { loading: authLoading } = useAuth();
   const [recipe, setRecipe] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [description, setDescription] = useState("");
+  const [tags, setTags] = useState([]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -18,6 +20,10 @@ export default function RecipeDetail() {
       const data = await getRecipeById(id);
       if (!cancelled) {
         setRecipe(data);
+        if (data) {
+          setDescription(getDescription(data.id));
+          setTags(getTags(data.id));
+        }
         setLoading(false);
       }
     }
@@ -67,6 +73,18 @@ export default function RecipeDetail() {
         </div>
 
         <h1 className="recipe-detail__title">{recipe.title}</h1>
+
+        {description && (
+          <p className="recipe-detail__description">{description}</p>
+        )}
+
+        {tags.length > 0 && (
+          <div className="recipe-detail__tags">
+            {tags.map((tag) => (
+              <span key={tag} className="recipe-detail__tag">{tag}</span>
+            ))}
+          </div>
+        )}
 
         <div className="recipe-detail__body">
           <section className="recipe-detail__section">
