@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Utensils, Search } from "lucide-react";
-import { getRecipes, deleteRecipe, getFavorites, toggleFavorite, deleteDescription, deleteTags } from "../utils/recipeStorage";
+import { getRecipes, deleteRecipe, getFavorites, toggleFavorite, deleteDescription, deleteTags, deleteCreatedAt, getCreatedAt } from "../utils/recipeStorage";
 import { useAuth } from "../context/AuthContext";
 import RecipeCard from "./RecipeCard";
 import RecipeForm from "./RecipeForm";
@@ -15,6 +15,7 @@ export default function RecipeList() {
   const [error, setError]               = useState("");
   const [query, setQuery]               = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
+  const [sortOrder, setSortOrder]       = useState("newest");
 
   useEffect(() => {
     if (authLoading) return;
@@ -38,17 +39,30 @@ export default function RecipeList() {
     return () => { cancelled = true; };
   }, [user, authLoading]);
 
-  const categories = ["All", ...Array.from(new Set(recipes.map((r) => r.category))).sort()];
+  const CATEGORIES = ["All", "Breakfast", "Lunch", "Dinner", "Snack", "Dessert", "Drink"];
 
   const needle = query.trim().toLowerCase();
-  const filteredRecipes = recipes.filter((r) => {
-    const matchesCategory = activeCategory === "All" || r.category === activeCategory;
-    const matchesQuery =
-      !needle ||
-      r.title.toLowerCase().includes(needle) ||
-      r.ingredients.some((i) => i.toLowerCase().includes(needle));
-    return matchesCategory && matchesQuery;
-  });
+  const filteredRecipes = recipes
+    .filter((r) => {
+      const matchesCategory = activeCategory === "All" || r.category === activeCategory;
+      const matchesQuery =
+        !needle ||
+        r.title.toLowerCase().includes(needle) ||
+        r.ingredients.some((i) => i.toLowerCase().includes(needle));
+      return matchesCategory && matchesQuery;
+    })
+    .sort((a, b) => {
+      const resolve = (r) => {
+        const raw = r.createdAt || getCreatedAt(r.id);
+        return raw ? new Date(raw).getTime() : null;
+      };
+      const ta = resolve(a);
+      const tb = resolve(b);
+      if (ta === null && tb === null) return 0;
+      if (ta === null) return sortOrder === "newest" ? 1 : -1;
+      if (tb === null) return sortOrder === "newest" ? -1 : 1;
+      return sortOrder === "newest" ? tb - ta : ta - tb;
+    });
 
   function handleToggleFavorite(id) {
     toggleFavorite(id);
@@ -65,6 +79,7 @@ export default function RecipeList() {
       await deleteRecipe(id);
       deleteDescription(id);
       deleteTags(id);
+      deleteCreatedAt(id);
       setRecipes((prev) => prev.filter((r) => r.id !== id));
     } catch (err) {
       setError(err.message);
@@ -119,10 +134,19 @@ export default function RecipeList() {
             onChange={(e) => setQuery(e.target.value)}
           />
         </div>
+        <select
+          className="sort-select"
+          value={sortOrder}
+          onChange={(e) => setSortOrder(e.target.value)}
+          aria-label="Sort recipes"
+        >
+          <option value="newest">Most Recent</option>
+          <option value="oldest">Oldest First</option>
+        </select>
       </div>
 
       <div className="category-chips">
-        {categories.map((cat) => (
+        {CATEGORIES.map((cat) => (
           <button
             key={cat}
             className={`chip${activeCategory === cat ? " chip--active" : ""}`}
@@ -140,7 +164,7 @@ export default function RecipeList() {
           <p className="empty-text">Try a different search term or category.</p>
           <button
             className="btn btn-secondary"
-            onClick={() => { setQuery(""); setActiveCategory("All"); }}
+            onClick={() => { setQuery(""); setActiveCategory("All"); setSortOrder("newest"); }}
           >
             Clear filters
           </button>

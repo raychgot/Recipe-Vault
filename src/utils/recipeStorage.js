@@ -151,6 +151,31 @@ function deleteTags(id) {
   localStorage.setItem(TAGS_KEY, JSON.stringify(all));
 }
 
+// ── Created-at timestamps (localStorage) ──────────────────────
+
+const CREATED_AT_KEY = "recipe_created_at";
+
+function getAllCreatedAts() {
+  const data = localStorage.getItem(CREATED_AT_KEY);
+  return data ? JSON.parse(data) : {};
+}
+
+function getCreatedAt(id) {
+  return getAllCreatedAts()[id] ?? null;
+}
+
+function saveCreatedAt(id, isoString) {
+  const all = getAllCreatedAts();
+  all[id] = isoString;
+  localStorage.setItem(CREATED_AT_KEY, JSON.stringify(all));
+}
+
+function deleteCreatedAt(id) {
+  const all = getAllCreatedAts();
+  delete all[id];
+  localStorage.setItem(CREATED_AT_KEY, JSON.stringify(all));
+}
+
 // ── AI Descriptions (localStorage) ────────────────────────────
 
 const DESCRIPTIONS_KEY = "recipe_descriptions";
@@ -184,6 +209,9 @@ export {
   deleteRecipe,
   getFavorites,
   toggleFavorite,
+  getCreatedAt,
+  saveCreatedAt,
+  deleteCreatedAt,
   getDescription,
   saveDescription,
   deleteDescription,

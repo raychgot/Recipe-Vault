@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { saveRecipe, updateRecipe, saveDescription, getDescription, saveTags, getTags } from "../utils/recipeStorage";
+import { saveRecipe, updateRecipe, saveDescription, getDescription, saveTags, getTags, saveCreatedAt } from "../utils/recipeStorage";
 
 const CATEGORIES = ["Breakfast", "Lunch", "Dinner", "Snack", "Dessert", "Drink"];
 
@@ -170,6 +170,7 @@ export default function RecipeForm({ initialRecipe = null, onSave = null }) {
         if (onSave) onSave(updated);
       } else {
         const saved = await saveRecipe(parsed);
+        saveCreatedAt(saved.id, new Date().toISOString());
         if (description) saveDescription(saved.id, description);
         if (tags.length) saveTags(saved.id, tags);
         setFields(EMPTY_FORM);

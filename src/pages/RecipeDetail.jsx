@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { Clock, Tag, ChevronLeft, Utensils } from "lucide-react";
-import { getRecipeById, getDescription, getTags } from "../utils/recipeStorage";
+import { Clock, Tag, Calendar, ChevronLeft, Utensils } from "lucide-react";
+import { getRecipeById, getDescription, getTags, getCreatedAt } from "../utils/recipeStorage";
 import { useAuth } from "../context/AuthContext";
 
 export default function RecipeDetail() {
@@ -12,6 +12,7 @@ export default function RecipeDetail() {
   const [loading, setLoading] = useState(true);
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState([]);
+  const [createdAt, setCreatedAt] = useState(null);
 
   useEffect(() => {
     if (authLoading) return;
@@ -23,6 +24,7 @@ export default function RecipeDetail() {
         if (data) {
           setDescription(getDescription(data.id));
           setTags(getTags(data.id));
+          setCreatedAt(getCreatedAt(data.id));
         }
         setLoading(false);
       }
@@ -70,6 +72,12 @@ export default function RecipeDetail() {
             <Tag size={15} strokeWidth={2} />
             {recipe.ingredients.length} ingredients
           </span>
+          {createdAt && (
+            <span className="recipe-detail__meta-item">
+              <Calendar size={15} strokeWidth={2} />
+              {new Date(createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
+            </span>
+          )}
         </div>
 
         <h1 className="recipe-detail__title">{recipe.title}</h1>
